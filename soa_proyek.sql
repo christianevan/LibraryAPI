@@ -48,13 +48,14 @@ CREATE TABLE `borrow` (
   `tanggal_pinjam` varchar(12) DEFAULT NULL,
   `tanggal_pengembalian` varchar(12) DEFAULT NULL,
   `status` varchar(10) DEFAULT NULL,
+  `durasi` int(5) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
 
 /*Data for the table `borrow` */
 
-insert  into `borrow`(`id`,`id_user`,`id_buku`,`tanggal_pinjam`,`tanggal_pengembalian`,`status`) values 
-(1,1,1,'30-05-2022','15-06-2022','returned');
+insert  into `borrow`(`id`,`id_user`,`id_buku`,`tanggal_pinjam`,`tanggal_pengembalian`,`status`,`durasi`) values 
+(1,1,1,'30-05-2022','15-06-2022','returned',30);
 
 /*Table structure for table `users` */
 
