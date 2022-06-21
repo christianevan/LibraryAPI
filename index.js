@@ -399,6 +399,7 @@ app.post("/api/borrow/return",async function(req,res){
 app.post("/api/book/add", upload.single("gambar"), async function(req,res){
     var token = req.header('x-auth-token');
     if(!req.header('x-auth-token')){
+        fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
         return res.status(404).send("Unauthorized");
     }
     try{
@@ -451,98 +452,39 @@ app.post("/api/book/add", upload.single("gambar"), async function(req,res){
     }
 })
 
-//ubah buku tanpa gambar
-app.put("/api/book/edit", async function(req,res){
-    var token = req.header('x-auth-token');
-    if(!req.header('x-auth-token')){
-        return res.status(404).send("Unauthorized");
-    }
-    try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
-    }catch(err){
-        return res.status(400).send("Token Expired or Invalid")
-    }
-
-    const schema = 
-        joi.object({
-            tanggal_terbit : joi.date().format('DD-MM-YYYY').required(),
-        })
-    
-    const {judul,penulis,penerbit,tanggal_terbit,harga,book_id,user_id} = req.body;
-    let buku = await db.query(`select * from book where id = '${book_id}'`)
-    buku = buku[0];
-    if(!buku || !id_buku){
-        return res.status(404).send({"message" : "Buku belum terdaftar atau id tidak valid!"});
-    }else{
-        let user = await db.query(`select * from users where id = '${user_id}'`)
-        user = user[0];
-        if(!user){
-            return res.status(404).send({"message" : "User belum terdaftar!"});
-        }else if(user.role != "librarian"){
-            return res.status(400).send({"message" : "User bukan librarian!"});
-        }else{
-            let js = buku.judul;
-            let ps = buku.penulis;
-            let pns = buku.penerbit;
-            let tts = buku.tanggal_terbit;
-            let hs = buku.harga;
-            let exc = `update book set `;
-            if(judul){
-                exc += `judul = '${judul}', `;
-                js = judul+"";
-            }
-            if(penulis){
-                exc += `penulis = '${penulis}', `;
-                ps = penulis+"";
-            }
-            if(penerbit){
-                exc += `penerbit = '${penerbit}', `;
-                pns = penerbit+"";
-            }
-            if(tanggal_terbit){
-                exc += `tanggal_terbit = '${tanggal_terbit}', `;
-                tts = tanggal_terbit+"";
-            }
-            if(harga){
-                exc += `harga = '${harga}', `;
-                hs = harga;
-            }
-            exc = exc.substring(0, exc.length-2);
-            exc += ` where article_image = '${temparid}' `;
-            let hasil = await db.query(exc);
-
-            return res.status(200).send({
-                judul: js,
-                penulis: ps,
-                penerbit: pns,
-                tanggal_terbit: tts,
-                harga: hs,
-                edited_by: user.nama
-            });
-        }
-    }
-})
-
-//ubah buku dengan gambar
+//ubah buku
 app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
-    var token = req.header('x-auth-token');
-    if(!req.header('x-auth-token')){
-        fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
-        return res.status(404).send("Unauthorized");
-    }
-    try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
-    }catch(err){
-        return res.status(400).send("Token Expired or Invalid")
-    }
-    const {judul,penulis,penerbit,tanggal_terbit,status,harga,book_id,user_id} = req.body;
     let cekgambar = req.file+"";
-    let buku = await db.query(`select * from book where id = '${book_id}'`)
-    buku = buku[0];
-    if(!buku || !id_buku){
-        return res.status(404).send({"message" : "Buku belum terdaftar atau id tidak valid!"});
-    }else{
-        if(cekgambar!="undefined"){
+    if(cekgambar == "undefined"){
+        var token = req.header('x-auth-token');
+        if(!req.header('x-auth-token')){
+            return res.status(404).send("Unauthorized");
+        }
+        try{
+            var userdata = jwt.verify(token, process.env.APP_SECRET);
+        }catch(err){
+            return res.status(400).send("Token Expired or Invalid")
+        }
+    
+        const schema = 
+            joi.object({
+                tanggal_terbit : joi.date().format('DD-MM-YYYY'),
+            })
+        try {
+            await schema.validateAsync(req.body);
+        } catch (error) {
+            return res.status(403).send(error.toString());
+        }
+        
+        const {judul,penulis,penerbit,tanggal_terbit,harga,book_id,user_id} = req.body;
+        if(!book_id || !user_id){
+            return res.status(400).send({"message" : "Field book_id dan user_id harus diisi!"});
+        }
+        let buku = await db.query(`select * from book where id = '${book_id}'`)
+        buku = buku[0];
+        if(!buku || !id_buku){
+            return res.status(404).send({"message" : "Buku belum terdaftar atau id tidak valid!"});
+        }else{
             let user = await db.query(`select * from users where id = '${user_id}'`)
             user = user[0];
             if(!user){
@@ -550,8 +492,131 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
             }else if(user.role != "librarian"){
                 return res.status(400).send({"message" : "User bukan librarian!"});
             }else{
-                temparid = buku.gambar;
+                let js = buku.judul;
+                let ps = buku.penulis;
+                let pns = buku.penerbit;
+                let tts = buku.tanggal_terbit;
+                let hs = buku.harga;
+                let exc = `update book set `;
+                if(judul){
+                    exc += `judul = '${judul}', `;
+                    js = judul+"";
+                }
+                if(penulis){
+                    exc += `penulis = '${penulis}', `;
+                    ps = penulis+"";
+                }
+                if(penerbit){
+                    exc += `penerbit = '${penerbit}', `;
+                    pns = penerbit+"";
+                }
+                if(tanggal_terbit){
+                    exc += `tanggal_terbit = '${tanggal_terbit}', `;
+                    tts = tanggal_terbit+"";
+                }
+                if(harga){
+                    exc += `harga = '${harga}', `;
+                    hs = harga;
+                }
+                exc = exc.substring(0, exc.length-2);
+                exc += ` where id = '${book_id}' `;
+                let hasil = await db.query(exc);
+    
+                return res.status(200).send({
+                    judul: js,
+                    penulis: ps,
+                    penerbit: pns,
+                    tanggal_terbit: tts,
+                    harga: hs,
+                    edited_by: user.nama
+                });
+            }
+        }   
+    }else{
+        if(!req.header('x-auth-token')){
+            fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
+            return res.status(404).send("Unauthorized");
+        }try{
+            var userdata = jwt.verify(token, process.env.APP_SECRET);
+        }catch(err){
+            fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
+            return res.status(400).send("Token Expired or Invalid")
+        }
 
+        const schema = 
+            joi.object({
+                tanggal_terbit : joi.date().format('DD-MM-YYYY'),
+            })
+        try {
+            await schema.validateAsync(req.body);
+        } catch (error) {
+            fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
+            return res.status(403).send(error.toString());
+        }
+
+        const {judul,penulis,penerbit,tanggal_terbit,harga,book_id,user_id} = req.body;
+        if(!book_id || !user_id){
+            fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
+            return res.status(400).send({"message" : "Field book_id dan user_id harus diisi!"});
+        }else{
+            let buku = await db.query(`select * from book where id = '${book_id}'`)
+            buku = buku[0];
+            if(!buku || !id_buku){
+                fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
+                return res.status(404).send({"message" : "Buku belum terdaftar atau id tidak valid!"});
+            }else{
+                let user = await db.query(`select * from users where id = '${user_id}'`)
+                user = user[0];
+                if(!user){
+                    fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
+                    return res.status(404).send({"message" : "User belum terdaftar!"});
+                }else if(user.role != "librarian"){
+                    fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
+                    return res.status(400).send({"message" : "User bukan librarian!"});
+                }else{
+                    let oldname = buku.gambar;
+                    fs.unlinkSync(`${oldname}`);
+                    let newname = "./uploads/"+req.file.filename;
+                    fs.renameSync(`${newname}`,`${oldname}`)
+                    let js = buku.judul;
+                    let ps = buku.penulis;
+                    let pns = buku.penerbit;
+                    let tts = buku.tanggal_terbit;
+                    let hs = buku.harga;
+                    let exc = `update book set `;
+                    if(judul){
+                        exc += `judul = '${judul}', `;
+                        js = judul+"";
+                    }
+                    if(penulis){
+                        exc += `penulis = '${penulis}', `;
+                        ps = penulis+"";
+                    }
+                    if(penerbit){
+                        exc += `penerbit = '${penerbit}', `;
+                        pns = penerbit+"";
+                    }
+                    if(tanggal_terbit){
+                        exc += `tanggal_terbit = '${tanggal_terbit}', `;
+                        tts = tanggal_terbit+"";
+                    }
+                    if(harga){
+                        exc += `harga = '${harga}', `;
+                        hs = harga;
+                    }
+                    exc = exc.substring(0, exc.length-2);
+                    exc += ` where id = '${book_id}' `;
+                    let hasil = await db.query(exc);
+        
+                    return res.status(200).send({
+                        judul: js,
+                        penulis: ps,
+                        penerbit: pns,
+                        tanggal_terbit: tts,
+                        harga: hs,
+                        edited_by: user.nama
+                    });
+                }
             }
         }
     }
