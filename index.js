@@ -152,6 +152,49 @@ app.get("/api/email-confirm/:email",async function(req,res){
     return res.status(201).send({"message":"Email berhasil diverifikasi"})
 })
 
+app.post("/api/topup",async function(req,res){
+    var token = req.header('x-auth-token');
+    if(!req.header('x-auth-token')){
+        return res.status(404).send("Unauthorized");
+    }
+    var userdata
+    try{
+        userdata = jwt.verify(token, process.env.APP_SECRET);
+    }catch(err){
+        return res.status(400).send("Token Expired or Invalid")
+    }
+    var email = userdata.email;
+    
+    var lama = await db.query(`select * from users where email = '${email}'`)
+
+    try{
+        var topup= parseInt(req.body.jumlah);
+        var saldo=parseInt(lama[0].saldo);
+
+    }catch(error){
+        console.log(error);
+    }
+    var total = parseInt(saldo+topup);
+
+    await db.query(`update users set saldo = '${total}' where email = '${email}'`)
+    return res.status(201).send({"message":`Top up berhasil, saldo sekarang menjadi ${total}`})
+})
+
+app.post("/api/recharge-apihit",async function(req,res){
+    var token = req.header('x-auth-token');
+    if(!req.header('x-auth-token')){
+        return res.status(404).send("Unauthorized");
+    }
+    var userdata
+    try{
+        userdata = jwt.verify(token, process.env.APP_SECRET);
+    }catch(err){
+        return res.status(400).send("Token Expired or Invalid")
+    }
+
+    
+})
+
 //cari buku berdasarkan judul
 app.get("/api/book/title/:judul",async function(req,res){
     var token = req.header('x-auth-token');
@@ -159,7 +202,7 @@ app.get("/api/book/title/:judul",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -190,7 +233,7 @@ app.get("/api/book/author/:penulis",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -221,7 +264,7 @@ app.get("/api/book/publisher/:penerbit",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -252,7 +295,7 @@ app.get("/api/book/publish-date/:tanggal",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -296,7 +339,7 @@ app.post("/api/borrow",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -309,7 +352,7 @@ app.post("/api/borrow/extend",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -322,7 +365,7 @@ app.post("/api/borrow/return",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -336,7 +379,7 @@ app.post("/api/book/add", upload.single("gambar"), async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -392,7 +435,7 @@ app.put("/api/book/edit",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -405,7 +448,7 @@ app.delete("/api/book/delete",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -418,7 +461,7 @@ app.post("/api/borrow/confirm",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -431,7 +474,7 @@ app.get("/api/borrow",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -444,7 +487,7 @@ app.post("/api/borrow/charge",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, keprocess.env.APP_SECRETy);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -458,7 +501,7 @@ app.put("/api/user/role",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -471,7 +514,7 @@ app.post("/api/user/ban",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, key);
+        var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
