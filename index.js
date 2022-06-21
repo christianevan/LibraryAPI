@@ -192,6 +192,16 @@ app.post("/api/recharge-apihit",async function(req,res){
         return res.status(400).send("Token Expired or Invalid")
     }
 
+    var lama = await db.query(`select * from users where email = '${userdata.email}'`)
+    if(parseInt(lama[0].saldo)<10000){
+        return res.status(400).send({"message":"Saldo tidak mencukupi"})
+    }
+
+    var saldo = parseInt(lama[0].saldo)-10000
+    var apihit = parseInt(lama[0].api_hit)+10
+    await db.query(`update users set saldo= ${saldo},api_hit=${apihit} where email = '${userdata.email}'`)
+
+    return res.status(201).send({"message":`Recharge api hit berhasil, api hit sekarang = ${apihit}, saldo sekarang = ${saldo}`})
     
 })
 
