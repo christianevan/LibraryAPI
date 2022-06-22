@@ -97,8 +97,8 @@ app.post("/api/register",async function(req,res){
     const Mailjet = require('node-mailjet')
     
     const mailjet = Mailjet.apiConnect(
-        process.env.MAILJET_APIKEY,
-        process.env.MAILJET_SECRET,
+        "6ffa4af1cc0c91966ef2efaef0be93c4",
+        "c502c62995657917cd7d1e09af73ba0c",
         {
             config:{},
             options:{}
@@ -156,7 +156,7 @@ app.post("/api/login",async function(req,res){
         return res.status(400).send({"message":"Email anda belum diverifikasi, silahkan cek email anda"})
     }
 
-    var token = jwt.sign({email:email},process.env.APP_SECRET,{expiresIn:'3h'})
+    var token = jwt.sign({email:email},"inisecretproyeksoa",{expiresIn:'3h'})
     return res.status(201).send({"message":`Login berhasil, Token :${token}`})
 
 })
@@ -175,7 +175,7 @@ app.post("/api/topup",async function(req,res){
     }
     var userdata
     try{
-        userdata = jwt.verify(token, process.env.APP_SECRET);
+        userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -203,7 +203,7 @@ app.post("/api/recharge-apihit",async function(req,res){
     }
     var userdata
     try{
-        userdata = jwt.verify(token, process.env.APP_SECRET);
+        userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -228,7 +228,7 @@ app.get("/api/book/title/:judul",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
+        var userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -259,7 +259,7 @@ app.get("/api/book/author/:penulis",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
+        var userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -290,7 +290,7 @@ app.get("/api/book/publisher/:penerbit",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
+        var userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -321,7 +321,7 @@ app.get("/api/book/publish-date/:tanggal",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
+        var userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -382,7 +382,7 @@ app.post("/api/borrow/:book_id",async function(req,res){
     }
     let userdata={}
     try{
-        userdata = jwt.verify(token, process.env.APP_SECRET);
+        userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -446,7 +446,7 @@ app.post("/api/borrow/extend/:id_borrow",async function(req,res){
     }
     let userdata={}
     try{
-        userdata = jwt.verify(token, process.env.APP_SECRET);
+        userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -508,7 +508,7 @@ app.post("/api/borrow/return/:id_borrow",async function(req,res){
     }
     let userdata={}
     try{
-        userdata = jwt.verify(token, process.env.APP_SECRET);
+        userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -574,7 +574,7 @@ app.post("/api/book/add", upload.single("gambar"), async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
+        var userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
         return res.status(400).send("Token Expired or Invalid")
@@ -635,7 +635,7 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
             return res.status(404).send("Unauthorized");
         }
         try{
-            var userdata = jwt.verify(token, process.env.APP_SECRET);
+            var userdata = jwt.verify(token,"inisecretproyeksoa");
         }catch(err){
             return res.status(400).send("Token Expired or Invalid")
         }
@@ -734,7 +734,7 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
             fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
             return res.status(404).send("Unauthorized");
         }try{
-            var userdata = jwt.verify(token, process.env.APP_SECRET);
+            var userdata = jwt.verify(token, "inisecretproyeksoa");
         }catch(err){
             fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
             return res.status(400).send("Token Expired or Invalid")
@@ -851,7 +851,7 @@ app.delete("/api/book/delete/:book_id",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
+        var userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -888,7 +888,7 @@ app.post("/api/borrow/confirm/:borrow_id",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
+        var userdata = jwt.verify(token,"inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -940,7 +940,7 @@ app.get("/api/borrow",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, process.env.APP_SECRET);
+        var userdata = jwt.verify(token,"inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -957,7 +957,7 @@ app.post("/api/borrow/charge/:borrow_id",async function(req,res){
         return res.status(404).send("Unauthorized");
     }
     try{
-        var userdata = jwt.verify(token, keprocess.env.APP_SECRET);
+        var userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -1060,7 +1060,7 @@ app.put("/api/user/role/:id_user",async function(req,res){
     }
     let userdata={}
     try{
-        userdata = jwt.verify(token, process.env.APP_SECRET);
+        userdata = jwt.verify(token,"inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
@@ -1103,7 +1103,7 @@ app.post("/api/user/ban/:id_user",async function(req,res){
     }
     let userdata={}
     try{
-        userdata = jwt.verify(token, process.env.APP_SECRET);
+        userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
