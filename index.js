@@ -950,43 +950,48 @@ app.get("/api/borrow",async function(req,res){
 //denda pengunjung yang telat mengembalikan buku
 app.post("/api/borrow/charge/:borrow_id",async function(req,res){
     var token = req.header('x-auth-token');
-    // if(!req.header('x-auth-token')){
-    //     return res.status(404).send("Unauthorized");
-    // }
-    // try{
-    //     var userdata = jwt.verify(token, keprocess.env.APP_SECRETy);
-    // }catch(err){
-    //     return res.status(400).send("Token Expired or Invalid")
-    // }
+    if(!req.header('x-auth-token')){
+        return res.status(404).send("Unauthorized");
+    }
+    try{
+        var userdata = jwt.verify(token, keprocess.env.APP_SECRET);
+    }catch(err){
+        return res.status(400).send("Token Expired or Invalid")
+    }
+    let ceklogin = await db.query(`select * from users where email = '${userdata.email}'`);
+    ceklogin = ceklogin[0];
+    if(ceklogin.role != "librarian"){
+        return res.status(400).send({"message" : "User bukan librarian!"});
+    }
     const {borrow_id} = req.params;
     let borrow = await db.query(`select * from borrow where id = '${borrow_id}'`)
     borrow = borrow[0];
     if(!borrow){
         return res.status(400).send({"message" : "Peminjaman tidak ditemukan!"});
     }
-    // if(borrow.status == "borrowed"){
-    //     return res.status(400).send({"message" : "user sedang dalam masa peminjaman"});
-    // }else if(borrow.status == "returned"){
-    //     return res.status(400).send({"message" : "user sudah mengembalikan pinjaman buku"});
-    // }else if(borrow.status == "declined"){
-    //     return res.status(400).send({"message" : "peminjaman user dalam status ditolak"});
-    // }else if(borrow.status == "pending"){
-    //     return res.status(400).send({"message" : "peminjaman user dalam status pending"});
-    // }
+    if(borrow.status == "borrowed"){
+        return res.status(400).send({"message" : "user sedang dalam masa peminjaman"});
+    }else if(borrow.status == "returned"){
+        return res.status(400).send({"message" : "user sudah mengembalikan pinjaman buku"});
+    }else if(borrow.status == "declined"){
+        return res.status(400).send({"message" : "peminjaman user dalam status ditolak"});
+    }else if(borrow.status == "pending"){
+        return res.status(400).send({"message" : "peminjaman user dalam status pending"});
+    }
     else
     {
-        // let cekuser = await db.query(`select * from users where id = '${borrow.id_user}'`)
-        // cekuser = cekuser[0];
-        // if(!cekuser){
-        //     return res.status(404).send({"message" : "user tidak ditemukan!"});
-        // }
+        let cekuser = await db.query(`select * from users where id = '${borrow.id_user}'`)
+        cekuser = cekuser[0];
+        if(!cekuser){
+            return res.status(404).send({"message" : "user tidak ditemukan!"});
+        }
         let cekbuku = await db.query(`select * from book where id = '${borrow.id_buku}'`)
         cekbuku = cekbuku[0];
         if(!cekbuku){
             return res.status(404).send({"message" : "buku tidak ditemukan!"});
         }
-        // let saldoawal = cekuser.saldo;
-        // saldoawal = parseInt(saldoawal);
+        let saldoawal = cekuser.saldo;
+        saldoawal = parseInt(saldoawal);
 
         let denda = cekbuku.harga;
         denda = parseInt(denda);
@@ -1000,7 +1005,7 @@ app.post("/api/borrow/charge/:borrow_id",async function(req,res){
         var mm = String(today.getMonth() + 1).padStart(2, '0'); 
         var yyyy = today.getFullYear();
     
-        today = yyyy + '-' + mm + '-' + dd; //tanggal sekarang
+        today = mm + '-' + dd + '-' + yyyy; //tanggal sekarang
 
         let splitstring = borrow.tanggal_pinjam.split("-");
         splitstring = splitstring.reverse();
@@ -1018,7 +1023,28 @@ app.post("/api/borrow/charge/:borrow_id",async function(req,res){
         if((date.getMonth()+1)<10){
             bulan = "0" + bulan;
         }
-        date = date.getFullYear() + '-' + bulan + '-' + hari; //tanggal peminjaman
+        date = bulan + '-' + hari + '-' + date.getFullYear(); //tanggal peminjaman
+
+        var date1 = new Date(today);
+        var date2 = new Date(date);
+
+        var Difference_In_Time = date2.getTime() - date1.getTime();
+
+        var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+
+        denda = denda * parseInt(Difference_In_Days);
+
+        let total = saldoawal - denda;
+
+        let updatesaldouser = `update users set saldo = ${total} where id = ${cekuser.id}`;
+        let hasil = await db.query(updatesaldouser);
+
+        return res.status(200).send({
+            saldo_awal : saldoawal,
+            keterlambatan : Difference_In_Days,
+            denda : denda,
+            saldo_akhir : total
+        })
     }
 })
 
