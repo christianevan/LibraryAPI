@@ -637,17 +637,40 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
             return res.status(400).send("Token Expired or Invalid")
         }
     
-        const schema = 
-            joi.object({
-                tanggal_terbit : joi.date().format('DD-MM-YYYY'),
-            })
-        try {
-            await schema.validateAsync(req.body.tanggal_terbit);
-        } catch (error) {
-            return res.status(403).send(error.toString());
-        }
-        
         const {judul,penulis,penerbit,tanggal_terbit,harga,book_id} = req.body;
+        if(tanggal_terbit){
+            var ListofDays = [31,28,31,30,31,30,31,31,30,31,30,31];
+            let cektanggal = tanggal_terbit.toString();
+            cektanggal = cektanggal.split("-");
+            if(cektanggal.length == 3){
+                var dd = parseInt(cektanggal[0]);
+                var mm  = parseInt(cektanggal[1]);
+                var yy = parseInt(cektanggal[2]);
+                if(isNaN(dd) || isNaN(mm) || isNaN(yy)){
+                    return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
+                }else{
+                    let ctr = 0;
+                    if(parseInt(mm) > 0 && parseInt(mm) < 13){
+                        if(parseInt(dd) > 0 && parseInt(dd) < ListofDays[mm-1]){
+                            if(parseInt(yy) > 1000 && parseInt(yy) < 2023){
+                                
+                            }else{
+                                ctr++;
+                            }
+                        }else{
+                            ctr++;
+                        }
+                    }else{
+                        ctr++;
+                    }
+                    if(ctr>0){
+                        return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
+                    }
+                }
+            }else{
+                return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
+            }
+        }
         if(!book_id){
             return res.status(400).send({"message" : "Field book_id harus diisi!"});
         }
@@ -714,18 +737,40 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
             return res.status(400).send("Token Expired or Invalid")
         }
 
-        const schema = 
-            joi.object({
-                tanggal_terbit : joi.date().format('DD-MM-YYYY'),
-            })
-        try {
-            await schema.validateAsync(req.body);
-        } catch (error) {
-            fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
-            return res.status(403).send(error.toString());
-        }
-
         const {judul,penulis,penerbit,tanggal_terbit,harga,book_id} = req.body;
+        if(tanggal_terbit){
+            var ListofDays = [31,28,31,30,31,30,31,31,30,31,30,31];
+            let cektanggal = tanggal_terbit.toString();
+            cektanggal = cektanggal.split("-");
+            if(cektanggal.length == 3){
+                var dd = parseInt(cektanggal[0]);
+                var mm  = parseInt(cektanggal[1]);
+                var yy = parseInt(cektanggal[2]);
+                if(isNaN(dd) || isNaN(mm) || isNaN(yy)){
+                    return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
+                }else{
+                    let ctr = 0;
+                    if(parseInt(mm) > 0 && parseInt(mm) < 13){
+                        if(parseInt(dd) > 0 && parseInt(dd) < ListofDays[mm-1]){
+                            if(parseInt(yy) > 1000 && parseInt(yy) < 2023){
+                                
+                            }else{
+                                ctr++;
+                            }
+                        }else{
+                            ctr++;
+                        }
+                    }else{
+                        ctr++;
+                    }
+                    if(ctr>0){
+                        return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
+                    }
+                }
+            }else{
+                return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
+            }
+        }
         if(!book_id){
             fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
             return res.status(400).send({"message" : "Field book_id harus diisi!"});
