@@ -237,12 +237,12 @@ app.get("/api/book/title/:judul",async function(req,res){
         if(books[i].status=="available"){status="Tersedia"}
         else {status="Sedang Dipinjam"}
         const a = {
-            "Judul":books[i].judul,
-            "Penulis":books[i].penulis,
-            "Penerbit":books[i].penerbit,
-            "Tanggal Terbit":books[i].tanggal_terbit,
-            "Status":status,
-            "Harga":books[i].harga,
+            "judul":books[i].judul,
+            "penulis":books[i].penulis,
+            "penerbit":books[i].penerbit,
+            "tanggal_terbit":books[i].tanggal_terbit,
+            "status":status,
+            "harga":books[i].harga,
         }
         temp.push(a)
     }
@@ -268,12 +268,12 @@ app.get("/api/book/author/:penulis",async function(req,res){
         if(books[i].status=="available"){status="Tersedia"}
         else {status="Sedang Dipinjam"}
         const a = {
-            "Judul":books[i].judul,
-            "Penulis":books[i].penulis,
-            "Penerbit":books[i].penerbit,
-            "Tanggal Terbit":books[i].tanggal_terbit,
-            "Status":status,
-            "Harga":books[i].harga,
+            "judul":books[i].judul,
+            "penulis":books[i].penulis,
+            "penerbit":books[i].penerbit,
+            "tanggal_terbit":books[i].tanggal_terbit,
+            "status":status,
+            "harga":books[i].harga,
         }
         temp.push(a)
     }
@@ -299,12 +299,12 @@ app.get("/api/book/publisher/:penerbit",async function(req,res){
         if(books[i].status=="available"){status="Tersedia"}
         else {status="Sedang Dipinjam"}
         const a = {
-            "Judul":books[i].judul,
-            "Penulis":books[i].penulis,
-            "Penerbit":books[i].penerbit,
-            "Tanggal Terbit":books[i].tanggal_terbit,
-            "Status":status,
-            "Harga":books[i].harga,
+            "judul":books[i].judul,
+            "penulis":books[i].penulis,
+            "penerbit":books[i].penerbit,
+            "tanggal_terbit":books[i].tanggal_terbit,
+            "status":status,
+            "harga":books[i].harga,
         }
         temp.push(a)
     }
@@ -342,12 +342,12 @@ app.get("/api/book/publish-date/:tanggal",async function(req,res){
         if(books[i].status=="available"){status="Tersedia"}
         else {status="Sedang Dipinjam"}
         const a = {
-            "Judul":books[i].judul,
-            "Penulis":books[i].penulis,
-            "Penerbit":books[i].penerbit,
-            "Tanggal Terbit":books[i].tanggal_terbit,
-            "Status":status,
-            "Harga":books[i].harga,
+            "judul":books[i].judul,
+            "penulis":books[i].penulis,
+            "penerbit":books[i].penerbit,
+            "tanggal_terbit":books[i].tanggal_terbit,
+            "status":status,
+            "harga":books[i].harga,
         }
         temp.push(a)
     }
@@ -413,18 +413,20 @@ app.post("/api/borrow/:book_id",async function(req,res){
             msg:"Saldo anda tidak cukup"
         })
     }
+    var lama_pinjam = req.body.lama_peminjaman;
+    lama_pinjam=parseInt(lama_pinjam);
     let today = formatDate(new Date());
     let return_date= new Date()
-    return_date.setDate(return_date.getDate()+30);
+    return_date.setDate(return_date.getDate()+lama_pinjam);
     return_date= formatDate(new Date(return_date));
     await db.executeQueryWithParam(`update book set status='borrowed' where id=?`,[book_id]);
     await db.executeQueryWithParam(`update users set saldo=saldo-? where id=?`,[book[0].harga,id_user]);
-    await db.executeQueryWithParam(`insert into borrow values(?,?,?,?,?,?,?)`,['',id_user,book_id,today,return_date,'borrowed',30]);
+    await db.executeQueryWithParam(`insert into borrow values(?,?,?,?,?,?,?)`,['',id_user,book_id,today,return_date,'borrowed',lama_pinjam]);
     
     return res.status(200).json({
         status:200,
         body:{
-            ID_Buku:book_id,
+            ID_Buku:parseInt(book_id),
             Judul_Buku:book[0].judul,
             Tanggal_Pinjam:today,
             Tanggal_Pengembalian:return_date,
@@ -478,7 +480,7 @@ app.post("/api/borrow/extend/:id_borrow",async function(req,res){
     date= formatDate(new Date(date));
 
     let book=await db.executeQueryWithParam(`select * from book where id=?`,[borrow[0].id_buku]);
-    let harga_extend=book[0].harga*0.01*lama_extend
+    let harga_extend=parseInt(book[0].harga)*0.01*parseInt(lama_extend)
     await db.executeQueryWithParam(`update users set saldo=saldo-? where id=?`,[harga_extend,id_user]);
     await db.executeQueryWithParam(`update borrow set tanggal_pengembalian=?,durasi=durasi+? where id=?`,[date,lama_extend,id_borrow]);
 
