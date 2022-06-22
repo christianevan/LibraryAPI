@@ -1,0 +1,530 @@
+{
+	"info": {
+		"_postman_id": "18e08139-3f97-4bef-8f42-f402f2faaba6",
+		"name": "Library API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13399640"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "adi@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "abcd",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:3000/api/login",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/register",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Email confirmation",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/email-confirm/",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"email-confirm",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search book by title",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/book/title/pelangi",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"book",
+						"title",
+						"pelangi"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search book by author",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/book/author/siti",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"book",
+						"author",
+						"siti"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search book by publisher",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/book/publisher/matahari",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"book",
+						"publisher",
+						"matahari"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search book by release date",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/book/publish-date/120515",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"book",
+						"publish-date",
+						"120515"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Book borrowing",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-auth-token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkaUBnbWFpbC5jb20iLCJpYXQiOjE2NTU4NzQyMDEsImV4cCI6MTY1NTg4NTAwMX0.wtxtr1vOfE1hzDRGU8l_BGB-vNi-3qo8BNQlsgd_g0g",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:3000/api/borrow/:book_id",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"borrow",
+						":book_id"
+					],
+					"variable": [
+						{
+							"key": "book_id",
+							"value": "1",
+							"description": "Id buku yang mau dipinjam"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Extend book borrowing",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-auth-token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkaUBnbWFpbC5jb20iLCJpYXQiOjE2NTU4NzQyMDEsImV4cCI6MTY1NTg4NTAwMX0.wtxtr1vOfE1hzDRGU8l_BGB-vNi-3qo8BNQlsgd_g0g",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "lama_extend",
+							"value": "7",
+							"description": "Lama waktu extend pinjam ( hari )",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:3000/api/borrow/extend/:id_borrow",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"borrow",
+						"extend",
+						":id_borrow"
+					],
+					"variable": [
+						{
+							"key": "id_borrow",
+							"value": "3",
+							"description": "Id borrow yang perna dilakukan"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Return book",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-auth-token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkaUBnbWFpbC5jb20iLCJpYXQiOjE2NTU4NzQyMDEsImV4cCI6MTY1NTg4NTAwMX0.wtxtr1vOfE1hzDRGU8l_BGB-vNi-3qo8BNQlsgd_g0g",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:3000/api/borrow/return/:id_borrow",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"borrow",
+						"return",
+						":id_borrow"
+					],
+					"variable": [
+						{
+							"key": "id_borrow",
+							"value": "3",
+							"description": "Id borrow yang perna dilakukan"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add book",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/book/add",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"book",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit book",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/book/edit",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"book",
+						"edit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete book",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/book/delete",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"book",
+						"delete"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Confirm book borrowing",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/borrow/confirm",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"borrow",
+						"confirm"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Book borrowing",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/borrow",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"borrow"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Charge book borrowing",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/borrow/charge",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"borrow",
+						"charge"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change user's role",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "x-auth-token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImJhbWJhbmdAZ21haWwuY29tIiwiaWF0IjoxNjU1ODc2MDA5LCJleHAiOjE2NTU4ODY4MDl9.Vwrkv8NLP-BCDD7fc_dvfVgx1NWX848uNGqV6RsKJr4",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:3000/api/user/role/:id_user",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"user",
+						"role",
+						":id_user"
+					],
+					"variable": [
+						{
+							"key": "id_user",
+							"value": "3",
+							"description": "id user yang mau di ubah rolenya"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ban user",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-auth-token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImJhbWJhbmdAZ21haWwuY29tIiwiaWF0IjoxNjU1ODc2MDA5LCJleHAiOjE2NTU4ODY4MDl9.Vwrkv8NLP-BCDD7fc_dvfVgx1NWX848uNGqV6RsKJr4",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:3000/api/user/ban/:id_user",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"user",
+						"ban",
+						":id_user"
+					],
+					"variable": [
+						{
+							"key": "id_user",
+							"value": "2",
+							"description": "id user yang mau di ban"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Topup",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-auth-token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkaUBnbWFpbC5jb20iLCJpYXQiOjE2NTU4MDI0NDgsImV4cCI6MTY1NTgxMzI0OH0.il098GPmKbsSS2xkQ7bT4BKDx7kvvPRT6WGPdcop114",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "jumlah",
+							"value": "100000",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:3000/api/topup",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"topup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recharge api hit",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-auth-token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkaUBnbWFpbC5jb20iLCJpYXQiOjE2NTU4MDI0NDgsImV4cCI6MTY1NTgxMzI0OH0.il098GPmKbsSS2xkQ7bT4BKDx7kvvPRT6WGPdcop114",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "localhost:3000/api/recharge-apihit",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"recharge-apihit"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

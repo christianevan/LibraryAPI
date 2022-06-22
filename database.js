@@ -36,7 +36,18 @@ const executeQuery = async(query) =>{
     }
 }
 
+const executeQueryWithParam = async (query, param) => {
+    return new Promise((resolve, reject) => {
+        pool.query(query, param, (err, rows, fields) => {
+            if (err) reject(err);
+            else resolve(rows);
+        })
+    })
+}
+
+
 module.exports = {
     'query' : executeQuery,
     'conn': getPool,
+    'executeQueryWithParam':executeQueryWithParam
 }
