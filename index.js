@@ -419,11 +419,12 @@ app.post("/api/borrow/:book_id",async function(req,res){
     return_date= formatDate(new Date(return_date));
     await db.executeQueryWithParam(`update book set status='borrowed' where id=?`,[book_id]);
     await db.executeQueryWithParam(`update users set saldo=saldo-? where id=?`,[book[0].harga,id_user]);
-    await db.executeQueryWithParam(`insert into borrow values(?,?,?,?,?,?,?)`,['',id_user,book_id,today,return_date,'borrowed',30]);
-    
+    let insert=await db.executeQueryWithParam(`insert into borrow values(?,?,?,?,?,?,?)`,['',id_user,book_id,today,return_date,'borrowed',30]);
+    console.log(insert)
     return res.status(200).json({
         status:200,
         body:{
+            ID_Borrow:insert.insertId,
             ID_Buku:book_id,
             Judul_Buku:book[0].judul,
             Tanggal_Pinjam:today,
