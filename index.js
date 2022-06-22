@@ -405,6 +405,7 @@ app.post("/api/book/add", upload.single("gambar"), async function(req,res){
     try{
         var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
+        fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
         return res.status(400).send("Token Expired or Invalid")
     }
     const schema = 
@@ -413,8 +414,7 @@ app.post("/api/book/add", upload.single("gambar"), async function(req,res){
             penulis : joi.string().required(),
             penerbit : joi.string().required(),
             tanggal_terbit : joi.date().format('DD-MM-YYYY').required(),
-            harga : joi.number().required(),
-            user_id : joi.string().required()
+            harga : joi.number().required()
         })
 
         // NB : hati-hati untuk penggunaan min() max() , kalau di depannya ada string() , dianggap length nya , kalau ada number() dianggap valuenya 
@@ -422,14 +422,17 @@ app.post("/api/book/add", upload.single("gambar"), async function(req,res){
     try {
         await schema.validateAsync(req.body);
     } catch (error) {
+        fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
         return res.status(403).send(error.toString());
     }
 
-    let user = await db.query(`select * from users where id = '${req.body.user_id}'`)
+    let user = await db.query(`select * from users where email = '${userdata.email}'`)
     user = user[0];
     if(!user){
+        fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
         return res.status(404).send({"message" : "User belum terdaftar!"});
     }else if(user.role != "librarian"){
+        fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
         return res.status(400).send({"message" : "User bukan librarian!"});
     }else{
         let tempkode = './uploads/'+req.file.filename;
@@ -471,21 +474,21 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
                 tanggal_terbit : joi.date().format('DD-MM-YYYY'),
             })
         try {
-            await schema.validateAsync(req.body);
+            await schema.validateAsync(req.body.tanggal_terbit);
         } catch (error) {
             return res.status(403).send(error.toString());
         }
         
-        const {judul,penulis,penerbit,tanggal_terbit,harga,book_id,user_id} = req.body;
-        if(!book_id || !user_id){
-            return res.status(400).send({"message" : "Field book_id dan user_id harus diisi!"});
+        const {judul,penulis,penerbit,tanggal_terbit,harga,book_id} = req.body;
+        if(!book_id){
+            return res.status(400).send({"message" : "Field book_id harus diisi!"});
         }
         let buku = await db.query(`select * from book where id = '${book_id}'`)
         buku = buku[0];
-        if(!buku || !id_buku){
+        if(!buku || !book_id){
             return res.status(404).send({"message" : "Buku belum terdaftar atau id tidak valid!"});
         }else{
-            let user = await db.query(`select * from users where id = '${user_id}'`)
+            let user = await db.query(`select * from users where email = '${userdata.email}'`)
             user = user[0];
             if(!user){
                 return res.status(404).send({"message" : "User belum terdaftar!"});
@@ -554,18 +557,18 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
             return res.status(403).send(error.toString());
         }
 
-        const {judul,penulis,penerbit,tanggal_terbit,harga,book_id,user_id} = req.body;
-        if(!book_id || !user_id){
+        const {judul,penulis,penerbit,tanggal_terbit,harga,book_id} = req.body;
+        if(!book_id){
             fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
-            return res.status(400).send({"message" : "Field book_id dan user_id harus diisi!"});
+            return res.status(400).send({"message" : "Field book_id harus diisi!"});
         }else{
             let buku = await db.query(`select * from book where id = '${book_id}'`)
             buku = buku[0];
-            if(!buku || !id_buku){
+            if(!buku || !book_id){
                 fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
                 return res.status(404).send({"message" : "Buku belum terdaftar atau id tidak valid!"});
             }else{
-                let user = await db.query(`select * from users where id = '${user_id}'`)
+                let user = await db.query(`select * from users where email = '${userdata.email}'`)
                 user = user[0];
                 if(!user){
                     fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
@@ -623,7 +626,7 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
 })
 
 //hapus buku
-app.delete("/api/book/delete",async function(req,res){
+app.delete("/api/book/delete/:book_id",async function(req,res){
     var token = req.header('x-auth-token');
     if(!req.header('x-auth-token')){
         return res.status(404).send("Unauthorized");
@@ -632,11 +635,35 @@ app.delete("/api/book/delete",async function(req,res){
         var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
+    }
+    const {book_id} = req.params;
+    let cekborrow = await db.query(`select * from borrow where id_buku = '${book_id}'`)
+    cekborrow.forEach(cb => {
+        if(cb.status == "borrowed" || cb.status == "overdue"){
+            return res.status(400).send({"message" : "buku tidak bisa dihapus karena belum dikembalikan"});
+        }
+    });
+    let user = await db.query(`select * from users where email = '${userdata.email}'`)
+    user = user[0];
+    if(user.role != "librarian"){
+        return res.status(400).send({"message" : "User bukan librarian!"});
+    }else{
+        let cekbook = await db.query(`select * from book where id_buku = '${book_id}'`)
+        cekbook = cekbook[0];
+        if(!cekbook){
+            return res.status(400).send({"message" : "Buku tidak ditemukan!"});
+        }
+        let oldname = cekbook.gambar;
+        fs.unlinkSync(`${oldname}`);
+        let del = `delete from book where id = '${book_id}'`
+        let hasil = await db.query(del);
+
+        return res.status(200).send({"message" : "Buku berhasil di hapus!"})
     }
 })
 
 //confirm peminjaman buku
-app.post("/api/borrow/confirm",async function(req,res){
+app.post("/api/borrow/confirm/:borrow_id",async function(req,res){
     var token = req.header('x-auth-token');
     if(!req.header('x-auth-token')){
         return res.status(404).send("Unauthorized");
@@ -645,6 +672,45 @@ app.post("/api/borrow/confirm",async function(req,res){
         var userdata = jwt.verify(token, process.env.APP_SECRET);
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
+    }
+    const {borrow_id} = req.params;
+    const {confirmation} = req.body;
+    let tempcon = confirmation + "";
+    tempcon = tempcon.toUpperCase();
+    if(!confirmation){
+        return res.status(404).send({"message" : "Field confirmation harus diisi!"});
+    }
+    if(tempcon != "ACCEPT" && tempcon != "DECLINE"){
+        return res.status(404).send({"message" : "Confirmation hanya diisi dengan accept / decline!"});
+    }
+    let user = await db.query(`select * from users where email = '${userdata.email}'`)
+    user = user[0];
+    if(!user){
+        return res.status(404).send({"message" : "User belum terdaftar!"});
+    }else if(user.role != "librarian"){
+        return res.status(400).send({"message" : "User bukan librarian!"});
+    }else{
+        let borrow = await db.query(`select * from borrow where id = '${borrow_id}'`)
+        borrow = borrow[0];
+        if(borrow.status == "borrowed"){
+            return res.status(400).send({"message" : "user sedang dalam masa peminjaman"});
+        }else if(borrow.status == "returned"){
+            return res.status(400).send({"message" : "user sudah mengembalikan pinjaman buku"});
+        }else if(borrow.status == "overdue"){
+            return res.status(400).send({"message" : "user sudah melewati batas waktu peminjaman buku"});
+        }else if(borrow.status == "declined"){
+            return res.status(400).send({"message" : "peminjaman user dalam status ditolak"});
+        }else{
+            if(tempcon == "ACCEPT"){
+                let query = `update borrow set status = ${"borrowed"} where id = ${borrow_id}`;
+                let hasil = await db.query(query);
+                return res.status(200).send({"message" : "Konfirmasi peminjaman berhasil dilakukan, status peminjaman : borrowed"});
+            }else{
+                let query = `update borrow set status = ${"declined"} where id = ${borrow_id}`;
+                let hasil = await db.query(query);
+                return res.status(200).send({"message" : "Konfirmasi peminjaman berhasil dilakukan, status peminjaman : declined"});
+            }
+        }
     }
 })
 
@@ -666,15 +732,77 @@ app.get("/api/borrow",async function(req,res){
 })
 
 //denda pengunjung yang telat mengembalikan buku
-app.post("/api/borrow/charge",async function(req,res){
+app.post("/api/borrow/charge/:borrow_id",async function(req,res){
     var token = req.header('x-auth-token');
-    if(!req.header('x-auth-token')){
-        return res.status(404).send("Unauthorized");
+    // if(!req.header('x-auth-token')){
+    //     return res.status(404).send("Unauthorized");
+    // }
+    // try{
+    //     var userdata = jwt.verify(token, keprocess.env.APP_SECRETy);
+    // }catch(err){
+    //     return res.status(400).send("Token Expired or Invalid")
+    // }
+    const {borrow_id} = req.params;
+    let borrow = await db.query(`select * from borrow where id = '${borrow_id}'`)
+    borrow = borrow[0];
+    if(!borrow){
+        return res.status(400).send({"message" : "Peminjaman tidak ditemukan!"});
     }
-    try{
-        var userdata = jwt.verify(token, keprocess.env.APP_SECRETy);
-    }catch(err){
-        return res.status(400).send("Token Expired or Invalid")
+    // if(borrow.status == "borrowed"){
+    //     return res.status(400).send({"message" : "user sedang dalam masa peminjaman"});
+    // }else if(borrow.status == "returned"){
+    //     return res.status(400).send({"message" : "user sudah mengembalikan pinjaman buku"});
+    // }else if(borrow.status == "declined"){
+    //     return res.status(400).send({"message" : "peminjaman user dalam status ditolak"});
+    // }else if(borrow.status == "pending"){
+    //     return res.status(400).send({"message" : "peminjaman user dalam status pending"});
+    // }
+    else
+    {
+        // let cekuser = await db.query(`select * from users where id = '${borrow.id_user}'`)
+        // cekuser = cekuser[0];
+        // if(!cekuser){
+        //     return res.status(404).send({"message" : "user tidak ditemukan!"});
+        // }
+        let cekbuku = await db.query(`select * from book where id = '${borrow.id_buku}'`)
+        cekbuku = cekbuku[0];
+        if(!cekbuku){
+            return res.status(404).send({"message" : "buku tidak ditemukan!"});
+        }
+        // let saldoawal = cekuser.saldo;
+        // saldoawal = parseInt(saldoawal);
+
+        let denda = cekbuku.harga;
+        denda = parseInt(denda);
+        denda = (1 / 100) * denda;
+
+        let waktu = borrow.durasi;
+        waktu = parseInt(waktu);
+        
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); 
+        var yyyy = today.getFullYear();
+    
+        today = yyyy + '-' + mm + '-' + dd; //tanggal sekarang
+
+        let splitstring = borrow.tanggal_pinjam.split("-");
+        splitstring = splitstring.reverse();
+        splitstring = splitstring.join("-");
+
+        var date = new Date(splitstring+"");
+        date.setDate(date.getDate() + waktu);
+
+        let hari = date.getDate()+"";
+        let bulan = (date.getMonth()+1)+"";
+
+        if(date.getDate()<10){
+            hari = "0" + hari;
+        }
+        if((date.getMonth()+1)<10){
+            bulan = "0" + bulan;
+        }
+        date = date.getFullYear() + '-' + bulan + '-' + hari; //tanggal peminjaman
     }
 })
 
