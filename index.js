@@ -747,6 +747,7 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
                 var mm  = parseInt(cektanggal[1]);
                 var yy = parseInt(cektanggal[2]);
                 if(isNaN(dd) || isNaN(mm) || isNaN(yy)){
+                    fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
                     return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
                 }else{
                     let ctr = 0;
@@ -764,10 +765,12 @@ app.put("/api/book/edit", upload.single("gambar"), async function(req,res){
                         ctr++;
                     }
                     if(ctr>0){
+                        fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
                         return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
                     }
                 }
             }else{
+                fs.unlinkSync(`${"./uploads/"+req.file.filename}`);
                 return res.status(400).send({"message" : "Format tanggal harus dd-mm-yyyy"});
             }
         }
