@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const multer = require('multer');
 const db = require('./database');
-const axios = require("axios");
 const joi = require('joi').extend(require('@joi/date'));
 const jwt = require("jsonwebtoken");
 const fs = require('fs');
@@ -122,7 +121,7 @@ app.post("/api/register",async function(req,res){
           ],
           "Subject": "Library API Account Confirmation",
           "TextPart": "Click link below to activate your account",
-          "HTMLPart": "<h3><a href='http://localhost:3000/api/email-confirm/"+email+"/'>Click Here</a>!</h3><br />",
+          "HTMLPart": "<h3><a href='https://library-api-webservice.herokuapp.com/"+email+"/'>Click Here</a>!</h3><br />",
           "CustomID": "AppGettingStartedTest"
         }
       ]
@@ -424,7 +423,7 @@ app.post("/api/borrow/:book_id",async function(req,res){
     return_date= formatDate(new Date(return_date));
     await db.executeQueryWithParam(`update book set status='borrowed' where id=?`,[book_id]);
     await db.executeQueryWithParam(`update users set saldo=saldo-? where id=?`,[book[0].harga,id_user]);
-    let insert=await db.executeQueryWithParam(`insert into borrow values(?,?,?,?,?,?,?)`,['',id_user,book_id,today,return_date,'borrowed',30]);
+    let insert=await db.executeQueryWithParam(`insert into borrow values(?,?,?,?,?,?,?)`,['0',id_user,book_id,today,return_date,'pending',lama_pinjam]);
 
     return res.status(200).json({
         status:200,
@@ -856,7 +855,7 @@ app.delete("/api/book/delete/:book_id",async function(req,res){
         return res.status(400).send("Token Expired or Invalid")
     }
     const {book_id} = req.params;
-    let cekborrow = await db.query(`select * from borrow where id_buku = '${book_id}'`)
+    let cekborrow = await db.query(`select * from borrow where id = '${book_id}'`)
     cekborrow.forEach(cb => {
         if(cb.status == "borrowed" || cb.status == "overdue"){
             return res.status(400).send({"message" : "buku tidak bisa dihapus karena belum dikembalikan"});
@@ -867,7 +866,7 @@ app.delete("/api/book/delete/:book_id",async function(req,res){
     if(user.role != "librarian"){
         return res.status(400).send({"message" : "User bukan librarian!"});
     }else{
-        let cekbook = await db.query(`select * from book where id_buku = '${book_id}'`)
+        let cekbook = await db.query(`select * from book where id = '${book_id}'`)
         cekbook = cekbook[0];
         if(!cekbook){
             return res.status(400).send({"message" : "Buku tidak ditemukan!"});
