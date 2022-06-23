@@ -857,11 +857,12 @@ app.delete("/api/book/delete/:book_id",async function(req,res){
     }
     const {book_id} = req.params;
     let cekborrow = await db.query(`select * from borrow where id_buku = '${book_id}'`)
-    cekborrow.forEach(cb => {
-        if(cb.status == "borrowed" || cb.status == "overdue"){
+    for (let i = 0; i < cekborrow.length; i++) {
+        const element = cekborrow[i];
+        if(element.status == "borrowed" || element.status == "overdue"){
             return res.status(400).send({"message" : "buku tidak bisa dihapus karena belum dikembalikan"});
         }
-    });
+    }
     let user = await db.query(`select * from users where email = '${userdata.email}'`)
     user = user[0];
     if(user.role != "librarian"){
