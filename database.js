@@ -1,9 +1,9 @@
 const mysql = require('mysql');
 const pool = mysql.createPool({
-    host:'localhost',
-    user:'root',
-    password:'',
-    database:'soa_proyek',
+    host:'db4free.net',
+    user:'soalibraryapi',
+    password:'untukproyeksoa',
+    database:'soalibraryapi',
 })
 
 const getPool = () =>{

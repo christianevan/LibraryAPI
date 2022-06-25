@@ -121,7 +121,7 @@ app.post("/api/register",async function(req,res){
           ],
           "Subject": "Library API Account Confirmation",
           "TextPart": "Click link below to activate your account",
-          "HTMLPart": "<h3><a href='https://library-api-webservice.herokuapp.com/"+email+"/'>Click Here</a>!</h3><br />",
+          "HTMLPart": "<h3><a href='https://library-api-webservice.herokuapp.com/api/email-confirm/"+email+"/'>Click Here</a>!</h3><br />",
           "CustomID": "AppGettingStartedTest"
         }
       ]
@@ -226,11 +226,18 @@ app.get("/api/book/title/:judul",async function(req,res){
     if(!req.header('x-auth-token')){
         return res.status(404).send("Unauthorized");
     }
+    var userdata
     try{
-        var userdata = jwt.verify(token, "inisecretproyeksoa");
+        userdata = jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
+    var user = await db.query(`select * from users where email = '${userdata.email}'`);
+    if(user[0].api_hit<5){
+        return res.status(400).send({"message":"API hit tidak cukup silahkan lakukan recharge"})
+    }
+    await db.query(`update users set api_hit=api_hit-5 where email = '${userdata.email}'`)
+
     var title = req.params.judul;
     var books = await db.query(`select * from book where judul like '%${title}%'`);
     var temp =[];
@@ -257,11 +264,17 @@ app.get("/api/book/author/:penulis",async function(req,res){
     if(!req.header('x-auth-token')){
         return res.status(404).send("Unauthorized");
     }
+    var userdata
     try{
-        var userdata = jwt.verify(token, "inisecretproyeksoa");
+        userdata= jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
+    var user = await db.query(`select * from users where email = '${userdata.email}'`);
+    if(user[0].api_hit<5){
+        return res.status(400).send({"message":"API hit tidak cukup silahkan lakukan recharge"})
+    }
+    await db.query(`update users set api_hit=api_hit-5 where email = '${userdata.email}'`)
     var author = req.params.penulis;
     var books = await db.query(`select * from book where penulis like '%${author}%'`);
     var temp =[];
@@ -288,11 +301,17 @@ app.get("/api/book/publisher/:penerbit",async function(req,res){
     if(!req.header('x-auth-token')){
         return res.status(404).send("Unauthorized");
     }
+    var userdata
     try{
-        var userdata = jwt.verify(token, "inisecretproyeksoa");
+        userdata= jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
+    var user = await db.query(`select * from users where email = '${userdata.email}'`);
+    if(user[0].api_hit<5){
+        return res.status(400).send({"message":"API hit tidak cukup silahkan lakukan recharge"})
+    }
+    await db.query(`update users set api_hit=api_hit-5 where email = '${userdata.email}'`)
     var publisher = req.params.penerbit;
     var books = await db.query(`select * from book where penerbit like '%${publisher}%'`);
     var temp =[];
@@ -319,11 +338,17 @@ app.get("/api/book/publish-date/:tanggal",async function(req,res){
     if(!req.header('x-auth-token')){
         return res.status(404).send("Unauthorized");
     }
+    var userdata
     try{
-        var userdata = jwt.verify(token, "inisecretproyeksoa");
+        userdata= jwt.verify(token, "inisecretproyeksoa");
     }catch(err){
         return res.status(400).send("Token Expired or Invalid")
     }
+    var user = await db.query(`select * from users where email = '${userdata.email}'`);
+    if(user[0].api_hit<5){
+        return res.status(400).send({"message":"API hit tidak cukup silahkan lakukan recharge"})
+    }
+    await db.query(`update users set api_hit=api_hit-5 where email = '${userdata.email}'`)
     var tanggal = req.params.tanggal;
     if(tanggal.length!=6){
         return res.status(400).send({"message":"Format tanggal salah"})
@@ -855,12 +880,12 @@ app.delete("/api/book/delete/:book_id",async function(req,res){
         return res.status(400).send("Token Expired or Invalid")
     }
     const {book_id} = req.params;
-    let cekborrow = await db.query(`select * from borrow where id = '${book_id}'`)
-    cekborrow.forEach(cb => {
-        if(cb.status == "borrowed" || cb.status == "overdue"){
-            return res.status(400).send({"message" : "buku tidak bisa dihapus karena belum dikembalikan"});
-        }
-    });
+    // let cekborrow = await db.query(`select * from borrow where id = '${book_id}'`)
+    // cekborrow.forEach(cb => {
+    //     if(cb.status == "borrowed" || cb.status == "overdue"){
+    //         return res.status(400).send({"message" : "buku tidak bisa dihapus karena belum dikembalikan"});
+    //     }
+    // });
     let user = await db.query(`select * from users where email = '${userdata.email}'`)
     user = user[0];
     if(user.role != "librarian"){
@@ -920,11 +945,11 @@ app.post("/api/borrow/confirm/:borrow_id",async function(req,res){
             return res.status(400).send({"message" : "peminjaman user dalam status ditolak"});
         }else{
             if(tempcon == "ACCEPT"){
-                let query = `update borrow set status = ${"borrowed"} where id = ${borrow_id}`;
+                let query = `update borrow set status = '${"borrowed"}' where id = ${borrow_id}`;
                 let hasil = await db.query(query);
                 return res.status(200).send({"message" : "Konfirmasi peminjaman berhasil dilakukan, status peminjaman : borrowed"});
             }else{
-                let query = `update borrow set status = ${"declined"} where id = ${borrow_id}`;
+                let query = `update borrow set status = $'{"declined"}' where id = ${borrow_id}`;
                 let hasil = await db.query(query);
                 return res.status(200).send({"message" : "Konfirmasi peminjaman berhasil dilakukan, status peminjaman : declined"});
             }
@@ -971,9 +996,7 @@ app.post("/api/borrow/charge/:borrow_id",async function(req,res){
     if(!borrow){
         return res.status(400).send({"message" : "Peminjaman tidak ditemukan!"});
     }
-    if(borrow.status == "borrowed"){
-        return res.status(400).send({"message" : "user sedang dalam masa peminjaman"});
-    }else if(borrow.status == "returned"){
+     if(borrow.status == "returned"){
         return res.status(400).send({"message" : "user sudah mengembalikan pinjaman buku"});
     }else if(borrow.status == "declined"){
         return res.status(400).send({"message" : "peminjaman user dalam status ditolak"});
